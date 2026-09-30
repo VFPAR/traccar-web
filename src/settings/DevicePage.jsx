@@ -59,18 +59,20 @@ const DevicePage = () => {
     }
   });
 
-  const setAttribute = (key, value) => setItem({
-    ...item,
-    attributes: { ...item.attributes, [key]: value },
-  });
+  const setAttribute = (key, value) =>
+    setItem({
+      ...item,
+      attributes: { ...item.attributes, [key]: value },
+    });
 
   const requiredSx = { '& .MuiFormLabel-asterisk': { color: 'error.main' } };
 
-  const validate = () => item
-    && item.name
-    && item.uniqueId
-    && item.attributes?.devicePassword
-    && item.attributes?.imeiSecundario;
+  const validate = () =>
+    item &&
+    item.name &&
+    item.uniqueId &&
+    item.attributes?.devicePassword &&
+    item.attributes?.imeiSecundario;
 
   return (
     <EditItemView
@@ -97,7 +99,7 @@ const DevicePage = () => {
                   sx={requiredSx}
                 />
               </FieldTip>
-              <FieldTip title="ID que o rastreador envia no cabeçalho das mensagens. É por ele que o Traccar associa as posições a este device. MV730G: IMEI. MV710G/MV710N: ID do rastreador. Precisa ser único. Campo uniqueId.">
+              <FieldTip title="ID que o rastreador envia no cabeçalho das mensagens. É por ele que a Localize-C associa as posições a este device. MV730G: IMEI. MV710G/MV710N: ID do rastreador. Precisa ser único. Campo uniqueId.">
                 <TextField
                   value={item.uniqueId || ''}
                   onChange={(event) => setItem({ ...item, uniqueId: event.target.value })}
