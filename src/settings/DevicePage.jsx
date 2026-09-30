@@ -57,7 +57,17 @@ const DevicePage = () => {
     }
   });
 
-  const validate = () => item && item.name && item.uniqueId;
+  const setAttribute = (key, value) => setItem({
+    ...item,
+    attributes: { ...item.attributes, [key]: value },
+  });
+
+  const validate = () => item
+    && item.name
+    && item.uniqueId
+    && item.attributes?.trackerId
+    && item.attributes?.devicePassword
+    && item.attributes?.imeiSecundario;
 
   return (
     <EditItemView
@@ -86,6 +96,26 @@ const DevicePage = () => {
                 label={t('deviceIdentifier')}
                 helperText={t('deviceIdentifierHelp')}
                 disabled={Boolean(uniqueId)}
+              />
+              <TextField
+                value={item.attributes?.trackerId || ''}
+                onChange={(event) => setAttribute('trackerId', event.target.value)}
+                label="ID do Rastreador"
+                required
+              />
+              <TextField
+                value={item.attributes?.devicePassword || ''}
+                onChange={(event) => setAttribute('devicePassword', event.target.value)}
+                label="Senha"
+                type="password"
+                autoComplete="new-password"
+                required
+              />
+              <TextField
+                value={item.attributes?.imeiSecundario || ''}
+                onChange={(event) => setAttribute('imeiSecundario', event.target.value)}
+                label="IMEI"
+                required
               />
             </AccordionDetails>
           </Accordion>
