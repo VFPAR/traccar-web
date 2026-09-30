@@ -12,7 +12,9 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FileInput from '../common/components/FileInput';
+import PasswordField from '../common/components/PasswordField';
 import EditItemView from './components/EditItemView';
+import FieldTip from './components/FieldTip';
 import EditAttributesAccordion from './components/EditAttributesAccordion';
 import SelectField from '../common/components/SelectField';
 import deviceCategories from '../common/util/deviceCategories';
@@ -62,10 +64,11 @@ const DevicePage = () => {
     attributes: { ...item.attributes, [key]: value },
   });
 
+  const requiredSx = { '& .MuiFormLabel-asterisk': { color: 'error.main' } };
+
   const validate = () => item
     && item.name
     && item.uniqueId
-    && item.attributes?.trackerId
     && item.attributes?.devicePassword
     && item.attributes?.imeiSecundario;
 
@@ -85,38 +88,45 @@ const DevicePage = () => {
               <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
-              <TextField
-                value={item.name || ''}
-                onChange={(event) => setItem({ ...item, name: event.target.value })}
-                label={t('sharedName')}
-              />
-              <TextField
-                value={item.uniqueId || ''}
-                onChange={(event) => setItem({ ...item, uniqueId: event.target.value })}
-                label={t('deviceIdentifier')}
-                helperText={t('deviceIdentifierHelp')}
-                disabled={Boolean(uniqueId)}
-              />
-              <TextField
-                value={item.attributes?.trackerId || ''}
-                onChange={(event) => setAttribute('trackerId', event.target.value)}
-                label="ID do Rastreador"
-                required
-              />
-              <TextField
-                value={item.attributes?.devicePassword || ''}
-                onChange={(event) => setAttribute('devicePassword', event.target.value)}
-                label="Senha"
-                type="password"
-                autoComplete="new-password"
-                required
-              />
-              <TextField
-                value={item.attributes?.imeiSecundario || ''}
-                onChange={(event) => setAttribute('imeiSecundario', event.target.value)}
-                label="IMEI"
-                required
-              />
+              <FieldTip title="Nome de exibição do device no mapa, listas e relatórios. Campo name.">
+                <TextField
+                  value={item.name || ''}
+                  onChange={(event) => setItem({ ...item, name: event.target.value })}
+                  label={t('sharedName')}
+                  required
+                  sx={requiredSx}
+                />
+              </FieldTip>
+              <FieldTip title="ID que o rastreador envia no cabeçalho das mensagens. É por ele que o Traccar associa as posições a este device. MV730G: IMEI. MV710G/MV710N: ID do rastreador. Precisa ser único. Campo uniqueId.">
+                <TextField
+                  value={item.uniqueId || ''}
+                  onChange={(event) => setItem({ ...item, uniqueId: event.target.value })}
+                  label={t('deviceIdentifier')}
+                  required
+                  sx={requiredSx}
+                  disabled={Boolean(uniqueId)}
+                />
+              </FieldTip>
+              <FieldTip title="Senha do rastreador usada nos comandos por SMS (ex.: adminip123456,host:porta). Padrão de fábrica: 123456. Fica em texto puro em attributes.devicePassword.">
+                <PasswordField
+                  value={item.attributes?.devicePassword || ''}
+                  onChange={(event) => setAttribute('devicePassword', event.target.value)}
+                  label="Senha"
+                  autoComplete="new-password"
+                  required
+                  sx={requiredSx}
+                />
+              </FieldTip>
+              <FieldTip title="IMEI de 15 dígitos do módulo celular do rastreador. No MV730G é o mesmo valor do Identificador. Salvo em attributes.imeiSecundario.">
+                <TextField
+                  value={item.attributes?.imeiSecundario || ''}
+                  onChange={(event) => setAttribute('imeiSecundario', event.target.value)}
+                  label="IMEI"
+                  helperText={t('deviceIdentifierHelp')}
+                  required
+                  sx={requiredSx}
+                />
+              </FieldTip>
             </AccordionDetails>
           </Accordion>
           <Accordion>
@@ -124,65 +134,81 @@ const DevicePage = () => {
               <Typography variant="subtitle1">{t('sharedExtra')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
-              <SelectField
-                value={item.groupId}
-                onChange={(event) => setItem({ ...item, groupId: Number(event.target.value) })}
-                endpoint="/api/groups"
-                label={t('groupParent')}
-              />
-              <TextField
-                value={item.phone || ''}
-                onChange={(event) => setItem({ ...item, phone: event.target.value })}
-                label={t('sharedPhone')}
-              />
-              <TextField
-                value={item.model || ''}
-                onChange={(event) => setItem({ ...item, model: event.target.value })}
-                label={t('deviceModel')}
-              />
-              <TextField
-                value={item.contact || ''}
-                onChange={(event) => setItem({ ...item, contact: event.target.value })}
-                label={t('deviceContact')}
-              />
-              <SelectField
-                value={item.category || 'default'}
-                onChange={(event) => setItem({ ...item, category: event.target.value })}
-                data={deviceCategories
-                  .map((category) => ({
-                    id: category,
-                    name: t(`category${category.replace(/^\w/, (c) => c.toUpperCase())}`),
-                  }))
-                  .sort((a, b) => a.name.localeCompare(b.name))}
-                label={t('deviceCategory')}
-              />
-              <SelectField
-                value={item.calendarId}
-                onChange={(event) => setItem({ ...item, calendarId: Number(event.target.value) })}
-                endpoint="/api/calendars"
-                label={t('sharedCalendar')}
-              />
-              <TextField
-                label={t('userExpirationTime')}
-                type="date"
-                value={item.expirationTime ? item.expirationTime.split('T')[0] : '2099-01-01'}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setItem({ ...item, expirationTime: new Date(e.target.value).toISOString() });
+              <FieldTip title="Grupo do device. O device herda permissões e atributos do grupo. Campo groupId.">
+                <SelectField
+                  value={item.groupId}
+                  onChange={(event) => setItem({ ...item, groupId: Number(event.target.value) })}
+                  endpoint="/api/groups"
+                  label={t('groupParent')}
+                />
+              </FieldTip>
+              <FieldTip title="Número do chip (SIM) instalado no rastreador. Campo phone.">
+                <TextField
+                  value={item.phone || ''}
+                  onChange={(event) => setItem({ ...item, phone: event.target.value })}
+                  label={t('sharedPhone')}
+                />
+              </FieldTip>
+              <FieldTip title="Modelo do rastreador, ex.: MV730G. Apenas informativo. Campo model.">
+                <TextField
+                  value={item.model || ''}
+                  onChange={(event) => setItem({ ...item, model: event.target.value })}
+                  label={t('deviceModel')}
+                />
+              </FieldTip>
+              <FieldTip title="Contato responsável pelo veículo ou rastreador. Apenas informativo. Campo contact.">
+                <TextField
+                  value={item.contact || ''}
+                  onChange={(event) => setItem({ ...item, contact: event.target.value })}
+                  label={t('deviceContact')}
+                />
+              </FieldTip>
+              <FieldTip title="Categoria do device. Define o ícone exibido no mapa. Campo category.">
+                <SelectField
+                  value={item.category || 'default'}
+                  onChange={(event) => setItem({ ...item, category: event.target.value })}
+                  data={deviceCategories
+                    .map((category) => ({
+                      id: category,
+                      name: t(`category${category.replace(/^\w/, (c) => c.toUpperCase())}`),
+                    }))
+                    .sort((a, b) => a.name.localeCompare(b.name))}
+                  label={t('deviceCategory')}
+                />
+              </FieldTip>
+              <FieldTip title="Calendário vinculado ao device, usado em regras que dependem de horário. Campo calendarId.">
+                <SelectField
+                  value={item.calendarId}
+                  onChange={(event) => setItem({ ...item, calendarId: Number(event.target.value) })}
+                  endpoint="/api/calendars"
+                  label={t('sharedCalendar')}
+                />
+              </FieldTip>
+              <FieldTip title="Depois dessa data o servidor passa a recusar as mensagens do device. Só administrador ou gerente altera. Campo expirationTime.">
+                <TextField
+                  label={t('userExpirationTime')}
+                  type="date"
+                  value={item.expirationTime ? item.expirationTime.split('T')[0] : '2099-01-01'}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setItem({ ...item, expirationTime: new Date(e.target.value).toISOString() });
+                    }
+                  }}
+                  disabled={!manager}
+                />
+              </FieldTip>
+              <FieldTip title="Com o device desativado, o servidor ignora as mensagens dele. Campo disabled.">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={item.disabled}
+                      onChange={(event) => setItem({ ...item, disabled: event.target.checked })}
+                    />
                   }
-                }}
-                disabled={!manager}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={item.disabled}
-                    onChange={(event) => setItem({ ...item, disabled: event.target.checked })}
-                  />
-                }
-                label={t('sharedDisabled')}
-                disabled={!manager}
-              />
+                  label={t('sharedDisabled')}
+                  disabled={!manager}
+                />
+              </FieldTip>
               <Button variant="outlined" color="primary" onClick={() => setShowQr(true)}>
                 {t('sharedQrCode')}
               </Button>
