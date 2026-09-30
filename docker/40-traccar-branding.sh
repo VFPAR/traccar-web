@@ -8,9 +8,9 @@ escape() {
     printf '%s' "$1" | sed -e 's/[\/&|]/\\&/g'
 }
 
-TITLE=$(escape "${APP_TITLE:-Traccar}")
-DESCRIPTION=$(escape "${APP_DESCRIPTION:-Traccar GPS Tracking System}")
-COLOR=$(escape "${APP_COLOR_PRIMARY:-#1a237e}")
+TITLE=$(escape "${APP_TITLE:-Localize-C}")
+DESCRIPTION=$(escape "${APP_DESCRIPTION:-Localize-C - Rastreamento de frota}")
+COLOR=$(escape "${APP_COLOR_PRIMARY:-#272727}")
 
 for file in index.html manifest.webmanifest; do
     sed -e "s|\${title}|$TITLE|g" \
@@ -19,4 +19,4 @@ for file in index.html manifest.webmanifest; do
         "$HTML_DIR/$file.tpl" > "$HTML_DIR/$file"
 done
 
-echo "traccar-web: branding aplicado (title=${APP_TITLE:-Traccar}), API em ${TRACCAR_API_URL}"
+echo "traccar-web: branding aplicado (title=${APP_TITLE:-Localize-C}), API em ${TRACCAR_API_URL}"

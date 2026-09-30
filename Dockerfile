@@ -22,9 +22,9 @@ RUN npm run build
 FROM nginx:1.27-alpine
 ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 \
     TRACCAR_API_URL="http://traccar-server:8082" \
-    APP_TITLE="Traccar" \
-    APP_DESCRIPTION="Traccar GPS Tracking System" \
-    APP_COLOR_PRIMARY="#1a237e"
+    APP_TITLE="Localize-C" \
+    APP_DESCRIPTION="Localize-C - Rastreamento de frota" \
+    APP_COLOR_PRIMARY="#272727"
 
 COPY --from=build /src/build /usr/share/nginx/html
 # Guarda as versões com placeholders para o script de branding regenerar a cada start
