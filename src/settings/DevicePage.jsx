@@ -11,7 +11,6 @@ import {
   Button,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import FileInput from '../common/components/FileInput';
 import PasswordField from '../common/components/PasswordField';
 import EditItemView from './components/EditItemView';
 import FieldTip from './components/FieldTip';
@@ -23,10 +22,20 @@ import useDeviceAttributes from '../common/attributes/useDeviceAttributes';
 import { useManager } from '../common/util/permissions';
 import SettingsMenu from './components/SettingsMenu';
 import useCommonDeviceAttributes from '../common/attributes/useCommonDeviceAttributes';
-import { useCatch } from '../reactHelper';
 import useSettingsStyles from './common/useSettingsStyles';
 import QrCodeDialog from '../common/components/QrCodeDialog';
-import fetchOrThrow from '../common/util/fetchOrThrow';
+
+const vehicleTypes = [
+  'SUV',
+  'HATCH',
+  'SEDAN',
+  'PICAPE',
+  'UTILITÁRIO',
+  'MOTO',
+  'CAMINHÃO',
+  'ÔNIBUS',
+  'OUTRO',
+];
 
 const DevicePage = () => {
   const { classes } = useSettingsStyles();
@@ -42,22 +51,6 @@ const DevicePage = () => {
 
   const [item, setItem] = useState(uniqueId ? { uniqueId } : null);
   const [showQr, setShowQr] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
-
-  const handleFileInput = useCatch(async (newFile) => {
-    setImageFile(newFile);
-    if (newFile && item?.id) {
-      const response = await fetchOrThrow(`/api/devices/${item.id}/image`, {
-        method: 'POST',
-        body: newFile,
-      });
-      setItem({ ...item, attributes: { ...item.attributes, deviceImage: await response.text() } });
-    } else if (!newFile) {
-      // eslint-disable-next-line no-unused-vars
-      const { deviceImage, ...remainingAttributes } = item.attributes || {};
-      setItem({ ...item, attributes: remainingAttributes });
-    }
-  });
 
   const setAttribute = (key, value) =>
     setItem({
@@ -178,6 +171,91 @@ const DevicePage = () => {
                   label={t('deviceCategory')}
                 />
               </FieldTip>
+              <FieldTip title="Modelo do veículo onde o rastreador está instalado. Campo vehicleModel.">
+                <TextField
+                  value={item.vehicleModel || ''}
+                  onChange={(event) => setItem({ ...item, vehicleModel: event.target.value })}
+                  label={t('deviceVehicleModel')}
+                />
+              </FieldTip>
+              <FieldTip title="Placa do veículo. Campo plate.">
+                <TextField
+                  value={item.plate || ''}
+                  onChange={(event) => setItem({ ...item, plate: event.target.value })}
+                  label={t('devicePlate')}
+                />
+              </FieldTip>
+              <FieldTip title="Chassi do veículo. Campo chassis.">
+                <TextField
+                  value={item.chassis || ''}
+                  onChange={(event) => setItem({ ...item, chassis: event.target.value })}
+                  label={t('deviceChassis')}
+                />
+              </FieldTip>
+              <FieldTip title="Cor do veículo. Campo color.">
+                <TextField
+                  value={item.color || ''}
+                  onChange={(event) => setItem({ ...item, color: event.target.value })}
+                  label={t('deviceColor')}
+                />
+              </FieldTip>
+              <FieldTip title="Fabricante do veículo. Campo manufacturer.">
+                <TextField
+                  value={item.manufacturer || ''}
+                  onChange={(event) => setItem({ ...item, manufacturer: event.target.value })}
+                  label={t('deviceManufacturer')}
+                />
+              </FieldTip>
+              <FieldTip title="Data de instalação do rastreador. Campo installationDate.">
+                <TextField
+                  type="date"
+                  value={item.installationDate ? item.installationDate.split('T')[0] : ''}
+                  onChange={(e) =>
+                    setItem({
+                      ...item,
+                      installationDate: e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : null,
+                    })
+                  }
+                  label={t('deviceInstallationDate')}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </FieldTip>
+              <FieldTip title="Tipo de carroceria do veículo. Campo vehicleType.">
+                <SelectField
+                  value={item.vehicleType || null}
+                  onChange={(event) => setItem({ ...item, vehicleType: event.target.value })}
+                  data={vehicleTypes.map((type) => ({ id: type, name: type }))}
+                  label={t('deviceVehicleType')}
+                />
+              </FieldTip>
+              <FieldTip title="Ano de fabricação do veículo. Campo manufactureYear.">
+                <TextField
+                  type="number"
+                  value={item.manufactureYear ?? ''}
+                  onChange={(event) =>
+                    setItem({
+                      ...item,
+                      manufactureYear: event.target.value ? Number(event.target.value) : null,
+                    })
+                  }
+                  label={t('deviceManufactureYear')}
+                />
+              </FieldTip>
+              <FieldTip title="Ano do modelo do veículo. Campo modelYear.">
+                <TextField
+                  type="number"
+                  value={item.modelYear ?? ''}
+                  onChange={(event) =>
+                    setItem({
+                      ...item,
+                      modelYear: event.target.value ? Number(event.target.value) : null,
+                    })
+                  }
+                  label={t('deviceModelYear')}
+                />
+              </FieldTip>
               <FieldTip title="Calendário vinculado ao device, usado em regras que dependem de horário. Campo calendarId.">
                 <SelectField
                   value={item.calendarId}
@@ -216,21 +294,6 @@ const DevicePage = () => {
               </Button>
             </AccordionDetails>
           </Accordion>
-          {item.id && (
-            <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('attributeDeviceImage')}</Typography>
-              </AccordionSummary>
-              <AccordionDetails className={classes.details}>
-                <FileInput
-                  placeholder={t('attributeDeviceImage')}
-                  value={imageFile}
-                  onChange={handleFileInput}
-                  slotProps={{ htmlInput: { accept: 'image/*' } }}
-                />
-              </AccordionDetails>
-            </Accordion>
-          )}
           <EditAttributesAccordion
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
