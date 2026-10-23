@@ -16,7 +16,6 @@ import EditItemView from './components/EditItemView';
 import FieldTip from './components/FieldTip';
 import EditAttributesAccordion from './components/EditAttributesAccordion';
 import SelectField from '../common/components/SelectField';
-import deviceCategories from '../common/util/deviceCategories';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import useDeviceAttributes from '../common/attributes/useDeviceAttributes';
 import { useManager } from '../common/util/permissions';
@@ -151,40 +150,6 @@ const DevicePage = () => {
                   label={t('deviceModel')}
                 />
               </FieldTip>
-              <FieldTip title="Contato responsável pelo veículo ou rastreador. Apenas informativo. Campo contact.">
-                <TextField
-                  value={item.contact || ''}
-                  onChange={(event) => setItem({ ...item, contact: event.target.value })}
-                  label={t('deviceContact')}
-                />
-              </FieldTip>
-              <FieldTip title="Categoria do device. Define o ícone exibido no mapa. Campo category.">
-                <SelectField
-                  value={item.category || 'default'}
-                  onChange={(event) => setItem({ ...item, category: event.target.value })}
-                  data={deviceCategories
-                    .map((category) => ({
-                      id: category,
-                      name: t(`category${category.replace(/^\w/, (c) => c.toUpperCase())}`),
-                    }))
-                    .sort((a, b) => a.name.localeCompare(b.name))}
-                  label={t('deviceCategory')}
-                />
-              </FieldTip>
-              <FieldTip title="Modelo do veículo onde o rastreador está instalado. Campo vehicleModel.">
-                <TextField
-                  value={item.vehicleModel || ''}
-                  onChange={(event) => setItem({ ...item, vehicleModel: event.target.value })}
-                  label={t('deviceVehicleModel')}
-                />
-              </FieldTip>
-              <FieldTip title="Placa do veículo. Campo plate.">
-                <TextField
-                  value={item.plate || ''}
-                  onChange={(event) => setItem({ ...item, plate: event.target.value })}
-                  label={t('devicePlate')}
-                />
-              </FieldTip>
               <FieldTip title="Chassi do veículo. Campo chassis.">
                 <TextField
                   value={item.chassis || ''}
@@ -219,7 +184,7 @@ const DevicePage = () => {
                     })
                   }
                   label={t('deviceInstallationDate')}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </FieldTip>
               <FieldTip title="Tipo de carroceria do veículo. Campo vehicleType.">
@@ -254,27 +219,6 @@ const DevicePage = () => {
                     })
                   }
                   label={t('deviceModelYear')}
-                />
-              </FieldTip>
-              <FieldTip title="Calendário vinculado ao device, usado em regras que dependem de horário. Campo calendarId.">
-                <SelectField
-                  value={item.calendarId}
-                  onChange={(event) => setItem({ ...item, calendarId: Number(event.target.value) })}
-                  endpoint="/api/calendars"
-                  label={t('sharedCalendar')}
-                />
-              </FieldTip>
-              <FieldTip title="Depois dessa data o servidor passa a recusar as mensagens do device. Só administrador ou gerente altera. Campo expirationTime.">
-                <TextField
-                  label={t('userExpirationTime')}
-                  type="date"
-                  value={item.expirationTime ? item.expirationTime.split('T')[0] : '2099-01-01'}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setItem({ ...item, expirationTime: new Date(e.target.value).toISOString() });
-                    }
-                  }}
-                  disabled={!manager}
                 />
               </FieldTip>
               <FieldTip title="Com o device desativado, o servidor ignora as mensagens dele. Campo disabled.">
