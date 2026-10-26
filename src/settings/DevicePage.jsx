@@ -18,7 +18,7 @@ import EditAttributesAccordion from './components/EditAttributesAccordion';
 import SelectField from '../common/components/SelectField';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import useDeviceAttributes from '../common/attributes/useDeviceAttributes';
-import { useManager } from '../common/util/permissions';
+import { useAdministrator, useManager } from '../common/util/permissions';
 import SettingsMenu from './components/SettingsMenu';
 import useCommonDeviceAttributes from '../common/attributes/useCommonDeviceAttributes';
 import useSettingsStyles from './common/useSettingsStyles';
@@ -41,6 +41,7 @@ const DevicePage = () => {
   const t = useTranslation();
 
   const manager = useManager();
+  const admin = useAdministrator();
 
   const commonDeviceAttributes = useCommonDeviceAttributes(t);
   const deviceAttributes = useDeviceAttributes(t);
@@ -136,6 +137,18 @@ const DevicePage = () => {
                   label={t('groupParent')}
                 />
               </FieldTip>
+              {admin && (
+                <FieldTip title="Tenant (cliente/empresa) ao qual o device pertence. Vazio = sem tenant. Somente administradores podem alterar. Campo tenantId.">
+                  <SelectField
+                    value={item.tenantId || null}
+                    onChange={(event) =>
+                      setItem({ ...item, tenantId: Number(event.target.value) || 0 })
+                    }
+                    endpoint="/api/tenants"
+                    label={t('sharedTenant')}
+                  />
+                </FieldTip>
+              )}
               <FieldTip title="Número do chip (SIM) instalado no rastreador. Campo phone.">
                 <TextField
                   value={item.phone || ''}
