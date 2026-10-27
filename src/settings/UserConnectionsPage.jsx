@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Accordion,
@@ -8,15 +9,56 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinkField from '../common/components/LinkField';
+import SelectField from '../common/components/SelectField';
+import fetchOrThrow from '../common/util/fetchOrThrow';
+import { useAdministrator } from '../common/util/permissions';
+import { useAsyncTask, useCatch } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import SettingsMenu from './components/SettingsMenu';
 import { formatNotificationTitle } from '../common/util/formatter';
 import PageLayout from '../common/components/PageLayout';
 import useSettingsStyles from './common/useSettingsStyles';
 
+const UserTenantField = ({ userId }) => {
+  const t = useTranslation();
+
+  const [user, setUser] = useState();
+
+  useAsyncTask(
+    async ({ signal }) => {
+      const response = await fetchOrThrow(`/api/users/${userId}`, { signal });
+      setUser(await response.json());
+    },
+    [userId],
+  );
+
+  const handleChange = useCatch(async (event) => {
+    const tenantId = Number(event.target.value) || 0;
+    const response = await fetchOrThrow(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...user, tenantId }),
+    });
+    setUser(await response.json());
+  });
+
+  if (!user) {
+    return null;
+  }
+  return (
+    <SelectField
+      value={user.tenantId || null}
+      onChange={handleChange}
+      endpoint="/api/tenants"
+      label={t('sharedTenant')}
+    />
+  );
+};
+
 const UserConnectionsPage = () => {
   const { classes } = useSettingsStyles();
   const t = useTranslation();
+  const admin = useAdministrator();
 
   const { id } = useParams();
 
@@ -31,6 +73,7 @@ const UserConnectionsPage = () => {
             <Typography variant="subtitle1">{t('sharedConnections')}</Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.details}>
+            {admin && <UserTenantField userId={id} />}
             <LinkField
               endpointAll="/api/devices?all=true&excludeAttributes=true"
               endpointLinked={`/api/devices?userId=${id}&excludeAttributes=true`}
