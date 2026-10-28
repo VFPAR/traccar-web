@@ -79,6 +79,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/devices?userId=${id}&excludeAttributes=true`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="deviceId"
               titleGetter={(it) => `${it.name} (${it.uniqueId})`}
               label={t('deviceTitle')}
@@ -88,6 +89,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/groups?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="groupId"
               label={t('settingsGroups')}
             />
@@ -96,6 +98,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/geofences?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="geofenceId"
               label={t('sharedGeofences')}
             />
@@ -104,6 +107,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/notifications?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="notificationId"
               titleGetter={(it) => formatNotificationTitle(t, it, true)}
               label={t('sharedNotifications')}
@@ -113,6 +117,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/calendars?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="calendarId"
               label={t('sharedCalendars')}
             />
@@ -121,6 +126,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/users?userId=${id}&excludeAttributes=true`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="managedUserId"
               label={t('settingsUsers')}
             />
@@ -129,6 +135,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/attributes/computed?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="attributeId"
               titleGetter={(it) => it.description}
               label={t('sharedComputedAttributes')}
@@ -138,6 +145,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/drivers?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="driverId"
               titleGetter={(it) => `${it.name} (${it.uniqueId})`}
               label={t('sharedDrivers')}
@@ -147,6 +155,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/commands?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="commandId"
               titleGetter={(it) => it.description}
               label={t('sharedSavedCommands')}
@@ -156,6 +165,7 @@ const UserConnectionsPage = () => {
               endpointLinked={`/api/maintenance?userId=${id}`}
               baseId={id}
               keyBase="userId"
+              eager
               keyLink="maintenanceId"
               label={t('sharedMaintenance')}
             />
