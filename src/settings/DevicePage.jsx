@@ -44,6 +44,27 @@ const vehicleTypes = [
   'OUTRO',
 ];
 
+const deviceImageSlots = [
+  {
+    slot: 'tracker',
+    attribute: 'trackerImage',
+    label: 'Foto do rastreador (IMEI e senha)',
+    tip: 'Foto do rastreador mostrando o IMEI e a senha. Máx. 500 KB (jpg, png, gif ou webp). Salvo em attributes.trackerImage.',
+  },
+  {
+    slot: 'plate',
+    attribute: 'plateImage',
+    label: 'Foto do rastreador com a placa',
+    tip: 'Foto do rastreador junto da placa do veículo. Máx. 500 KB (jpg, png, gif ou webp). Salvo em attributes.plateImage.',
+  },
+  {
+    slot: 'odometer',
+    attribute: 'odometerImage',
+    label: 'Foto do painel (odômetro)',
+    tip: 'Foto do painel do veículo exibindo o odômetro. Máx. 500 KB (jpg, png, gif ou webp). Salvo em attributes.odometerImage.',
+  },
+];
+
 const CopyButton = ({ value }) => {
   const t = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -82,19 +103,19 @@ const DevicePage = () => {
 
   const [item, setItem] = useState(uniqueId ? { uniqueId } : null);
   const [showQr, setShowQr] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState({});
 
-  const handleFileInput = useCatch(async (newFile) => {
-    setImageFile(newFile);
+  const handleFileInput = useCatch(async (slot, attribute, newFile) => {
+    setImageFiles((files) => ({ ...files, [slot]: newFile }));
     if (newFile && item?.id) {
-      const response = await fetchOrThrow(`/api/devices/${item.id}/image`, {
+      const response = await fetchOrThrow(`/api/devices/${item.id}/image?slot=${slot}`, {
         method: 'POST',
         body: newFile,
       });
-      setItem({ ...item, attributes: { ...item.attributes, deviceImage: await response.text() } });
+      setItem({ ...item, attributes: { ...item.attributes, [attribute]: await response.text() } });
     } else if (!newFile) {
       // eslint-disable-next-line no-unused-vars
-      const { deviceImage, ...remainingAttributes } = item.attributes || {};
+      const { [attribute]: removed, ...remainingAttributes } = item.attributes || {};
       setItem({ ...item, attributes: remainingAttributes });
     }
   });
@@ -324,15 +345,28 @@ const DevicePage = () => {
           {item.id && (
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('attributeDeviceImage')}</Typography>
+                <Typography variant="subtitle1">{t('sharedDevicePhotos')}</Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
-                <FileInput
-                  placeholder={t('attributeDeviceImage')}
-                  value={imageFile}
-                  onChange={handleFileInput}
-                  slotProps={{ htmlInput: { accept: 'image/*' } }}
-                />
+                {deviceImageSlots.map(({ slot, attribute, label, tip }) => (
+                  <FieldTip key={slot} title={tip}>
+                    <Box>
+                      <FileInput
+                        placeholder={label}
+                        value={imageFiles[slot] ?? null}
+                        onChange={(file) => handleFileInput(slot, attribute, file)}
+                        slotProps={{
+                          htmlInput: { accept: 'image/jpeg,image/png,image/gif,image/webp' },
+                        }}
+                      />
+                      {item.attributes?.[attribute] && (
+                        <Typography variant="caption" color="text.secondary">
+                          {`Arquivo atual: ${item.attributes[attribute]}`}
+                        </Typography>
+                      )}
+                    </Box>
+                  </FieldTip>
+                ))}
               </AccordionDetails>
             </Accordion>
           )}
