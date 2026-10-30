@@ -163,6 +163,13 @@ const DevicePage = () => {
                   label={t('deviceModel')}
                 />
               </FieldTip>
+              <FieldTip title="Placa do veículo. Campo plate.">
+                <TextField
+                  value={item.plate || ''}
+                  onChange={(event) => setItem({ ...item, plate: event.target.value })}
+                  label={t('devicePlate')}
+                />
+              </FieldTip>
               <FieldTip title="Chassi do veículo. Campo chassis.">
                 <TextField
                   value={item.chassis || ''}
