@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Accordion,
+  Box,
   AccordionSummary,
   AccordionDetails,
   Typography,
@@ -9,8 +10,13 @@ import {
   Checkbox,
   TextField,
   Button,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckIcon from '@mui/icons-material/Check';
+import FileInput from '../common/components/FileInput';
 import PasswordField from '../common/components/PasswordField';
 import EditItemView from './components/EditItemView';
 import FieldTip from './components/FieldTip';
@@ -21,8 +27,10 @@ import useDeviceAttributes from '../common/attributes/useDeviceAttributes';
 import { useAdministrator, useManager } from '../common/util/permissions';
 import SettingsMenu from './components/SettingsMenu';
 import useCommonDeviceAttributes from '../common/attributes/useCommonDeviceAttributes';
+import { useCatch } from '../reactHelper';
 import useSettingsStyles from './common/useSettingsStyles';
 import QrCodeDialog from '../common/components/QrCodeDialog';
+import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const vehicleTypes = [
   'SUV',
@@ -35,6 +43,29 @@ const vehicleTypes = [
   'ÔNIBUS',
   'OUTRO',
 ];
+
+const CopyButton = ({ value }) => {
+  const t = useTranslation();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(String(value ?? ''));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <Tooltip title={copied ? 'Copiado!' : t('sharedCopy')}>
+      <IconButton size="small" onClick={handleCopy} disabled={value == null || value === ''}>
+        {copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+      </IconButton>
+    </Tooltip>
+  );
+};
 
 const DevicePage = () => {
   const { classes } = useSettingsStyles();
@@ -51,6 +82,22 @@ const DevicePage = () => {
 
   const [item, setItem] = useState(uniqueId ? { uniqueId } : null);
   const [showQr, setShowQr] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+
+  const handleFileInput = useCatch(async (newFile) => {
+    setImageFile(newFile);
+    if (newFile && item?.id) {
+      const response = await fetchOrThrow(`/api/devices/${item.id}/image`, {
+        method: 'POST',
+        body: newFile,
+      });
+      setItem({ ...item, attributes: { ...item.attributes, deviceImage: await response.text() } });
+    } else if (!newFile) {
+      // eslint-disable-next-line no-unused-vars
+      const { deviceImage, ...remainingAttributes } = item.attributes || {};
+      setItem({ ...item, attributes: remainingAttributes });
+    }
+  });
 
   const setAttribute = (key, value) =>
     setItem({
@@ -78,9 +125,25 @@ const DevicePage = () => {
     >
       {item && (
         <>
+          {item.id && (
+            <Box sx={{ px: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h6" noWrap sx={{ minWidth: 0 }}>
+                  {item.name}
+                </Typography>
+                <CopyButton value={item.name} />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  {`ID do dispositivo: ${item.id}`}
+                </Typography>
+                <CopyButton value={item.id} />
+              </Box>
+            </Box>
+          )}
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1">{t('sharedDeviceInfo')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <FieldTip title="Nome de exibição do device no mapa, listas e relatórios. Campo name.">
@@ -122,13 +185,6 @@ const DevicePage = () => {
                   sx={requiredSx}
                 />
               </FieldTip>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedExtra')}</Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
               <FieldTip title="Grupo do device. O device herda permissões e atributos do grupo. Campo groupId.">
                 <SelectField
                   value={item.groupId}
@@ -156,41 +212,6 @@ const DevicePage = () => {
                   label={t('sharedPhone')}
                 />
               </FieldTip>
-              <FieldTip title="Modelo do rastreador, ex.: MV730G. Apenas informativo. Campo model.">
-                <TextField
-                  value={item.model || ''}
-                  onChange={(event) => setItem({ ...item, model: event.target.value })}
-                  label={t('deviceModel')}
-                />
-              </FieldTip>
-              <FieldTip title="Placa do veículo. Campo plate.">
-                <TextField
-                  value={item.plate || ''}
-                  onChange={(event) => setItem({ ...item, plate: event.target.value })}
-                  label={t('devicePlate')}
-                />
-              </FieldTip>
-              <FieldTip title="Chassi do veículo. Campo chassis.">
-                <TextField
-                  value={item.chassis || ''}
-                  onChange={(event) => setItem({ ...item, chassis: event.target.value })}
-                  label={t('deviceChassis')}
-                />
-              </FieldTip>
-              <FieldTip title="Cor do veículo. Campo color.">
-                <TextField
-                  value={item.color || ''}
-                  onChange={(event) => setItem({ ...item, color: event.target.value })}
-                  label={t('deviceColor')}
-                />
-              </FieldTip>
-              <FieldTip title="Fabricante do veículo. Campo manufacturer.">
-                <TextField
-                  value={item.manufacturer || ''}
-                  onChange={(event) => setItem({ ...item, manufacturer: event.target.value })}
-                  label={t('deviceManufacturer')}
-                />
-              </FieldTip>
               <FieldTip title="Data de instalação do rastreador. Campo installationDate.">
                 <TextField
                   type="date"
@@ -207,12 +228,69 @@ const DevicePage = () => {
                   slotProps={{ inputLabel: { shrink: true } }}
                 />
               </FieldTip>
+              <FieldTip title="Com o device desativado, o servidor ignora as mensagens dele. Campo disabled.">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={item.disabled}
+                      onChange={(event) => setItem({ ...item, disabled: event.target.checked })}
+                    />
+                  }
+                  label={t('sharedDisabled')}
+                  disabled={!manager}
+                />
+              </FieldTip>
+              <Button variant="outlined" color="primary" onClick={() => setShowQr(true)}>
+                {t('sharedQrCode')}
+              </Button>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1">{t('sharedVehicleInfo')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails className={classes.details}>
+              <FieldTip title="Placa do veículo. Campo plate.">
+                <TextField
+                  value={item.plate || ''}
+                  onChange={(event) => setItem({ ...item, plate: event.target.value })}
+                  label={t('devicePlate')}
+                />
+              </FieldTip>
+              <FieldTip title="Chassi do veículo. Campo chassis.">
+                <TextField
+                  value={item.chassis || ''}
+                  onChange={(event) => setItem({ ...item, chassis: event.target.value })}
+                  label={t('deviceChassis')}
+                />
+              </FieldTip>
+              <FieldTip title="Modelo do veículo. Campo model.">
+                <TextField
+                  value={item.model || ''}
+                  onChange={(event) => setItem({ ...item, model: event.target.value })}
+                  label={t('deviceModel')}
+                />
+              </FieldTip>
               <FieldTip title="Tipo de carroceria do veículo. Campo vehicleType.">
                 <SelectField
                   value={item.vehicleType || null}
                   onChange={(event) => setItem({ ...item, vehicleType: event.target.value })}
                   data={vehicleTypes.map((type) => ({ id: type, name: type }))}
                   label={t('deviceVehicleType')}
+                />
+              </FieldTip>
+              <FieldTip title="Cor do veículo. Campo color.">
+                <TextField
+                  value={item.color || ''}
+                  onChange={(event) => setItem({ ...item, color: event.target.value })}
+                  label={t('deviceColor')}
+                />
+              </FieldTip>
+              <FieldTip title="Fabricante do veículo. Campo manufacturer.">
+                <TextField
+                  value={item.manufacturer || ''}
+                  onChange={(event) => setItem({ ...item, manufacturer: event.target.value })}
+                  label={t('deviceManufacturer')}
                 />
               </FieldTip>
               <FieldTip title="Ano de fabricação do veículo. Campo manufactureYear.">
@@ -241,23 +319,23 @@ const DevicePage = () => {
                   label={t('deviceModelYear')}
                 />
               </FieldTip>
-              <FieldTip title="Com o device desativado, o servidor ignora as mensagens dele. Campo disabled.">
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={item.disabled}
-                      onChange={(event) => setItem({ ...item, disabled: event.target.checked })}
-                    />
-                  }
-                  label={t('sharedDisabled')}
-                  disabled={!manager}
-                />
-              </FieldTip>
-              <Button variant="outlined" color="primary" onClick={() => setShowQr(true)}>
-                {t('sharedQrCode')}
-              </Button>
             </AccordionDetails>
           </Accordion>
+          {item.id && (
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1">{t('attributeDeviceImage')}</Typography>
+              </AccordionSummary>
+              <AccordionDetails className={classes.details}>
+                <FileInput
+                  placeholder={t('attributeDeviceImage')}
+                  value={imageFile}
+                  onChange={handleFileInput}
+                  slotProps={{ htmlInput: { accept: 'image/*' } }}
+                />
+              </AccordionDetails>
+            </Accordion>
+          )}
           <EditAttributesAccordion
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}

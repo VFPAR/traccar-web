@@ -84,6 +84,8 @@
     "sharedPermissions": "Permissions",
     "sharedConnections": "Connections",
     "sharedExtra": "Extra",
+    "sharedDeviceInfo": "Device Information",
+    "sharedVehicleInfo": "Vehicle Information",
     "sharedPrimary": "Primary",
     "sharedSecondary": "Secondary",
     "sharedTypeString": "String",
